@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import * as XLSX from 'xlsx'
+import sstLogo from '../documents/SST_logo.png'
 import './App.css'
 
 const NAV_ITEMS = [
@@ -11,6 +12,8 @@ const NAV_ITEMS = [
   { id: 'documents', label: 'Cargo Bill Lathrop', icon: '🧾' },
   { id: 'history', label: 'Admin History', icon: '🛡️' },
 ]
+
+const CARGO_TYPE_OPTIONS = ['Lumber', 'Paper Roll', 'Others']
 
 const EMPTY_INBOUND = {
   cargoType: 'Lumber',
@@ -84,6 +87,13 @@ function lotStatus(lot) {
   return 'Received'
 }
 
+function normalizeCargoType(value) {
+  const raw = String(value || '').toLowerCase()
+  if (raw.includes('paper')) return 'Paper Roll'
+  if (raw.includes('lumber') || raw.includes('wood') || raw.includes('timber')) return 'Lumber'
+  return 'Others'
+}
+
 function App() {
   const [activeTab, setActiveTab] = useState('dashboard')
   const [loading, setLoading] = useState(true)
@@ -150,7 +160,8 @@ function App() {
         unit.barcode,
       ].some((value) => String(value || '').toLowerCase().includes(query))
 
-      const matchesCargo = filters.cargoType === 'ALL' || unit.cargoType === filters.cargoType
+      const normalizedCargoType = normalizeCargoType(unit.cargoType)
+      const matchesCargo = filters.cargoType === 'ALL' || normalizedCargoType === filters.cargoType
       const matchesStatus = filters.status === 'ALL' || unit.status === filters.status
       const matchesRelease = !filters.releaseNo || String(unit.releaseNo || '').toLowerCase().includes(filters.releaseNo.toLowerCase())
 
@@ -161,7 +172,7 @@ function App() {
         grouped.set(key, {
           key,
           customer: unit.customer,
-          cargoType: unit.cargoType,
+          cargoType: normalizedCargoType,
           product: unit.product,
           vessel: unit.vessel,
           voyageNo: unit.voyageNo,
@@ -326,12 +337,15 @@ function App() {
   return (
     <div className="app-shell">
       <header className="topbar">
-        <div>
-          <p className="eyebrow">Southeastern Ship Terminal</p>
-          <h1>Inventory Tracking System</h1>
-          <p className="subtitle">
-            Modern web platform for lumber, paper rolls, vessel discharge, warehouse storage, barcode scan-in and scan-out, release-number search, audit history, and Excel workflows.
-          </p>
+        <div className="brandWrap">
+          <img src={sstLogo} alt="Southeastern Ship Terminal" className="brandLogo" />
+          <div>
+            <h1>Inventory Tracking System</h1>
+            <p className="subtitle">
+              Modern web platform for lumber, paper rolls, vessel discharge, warehouse storage, barcode scan-in and scan-out, release-number search, audit history, and Excel workflows.
+            </p>
+            <p className="headerCredit">Website produced and managed by PXN AI and Analytics Consulting Sevices LLC</p>
+          </div>
         </div>
         <div className="topbarBadges">
           <span>200,000 sq ft covered storage</span>
@@ -456,7 +470,7 @@ function App() {
                     <span>Legacy Screen 1 · create vessel discharge records and barcode labels</span>
                   </div>
                   <div className="formGrid">
-                    <label><span>Cargo type</span><select value={inboundForm.cargoType} onChange={(event) => updateForm(setInboundForm, 'cargoType', event.target.value)}><option>Lumber</option><option>Paper Roll</option></select></label>
+                    <label><span>Cargo type</span><select value={inboundForm.cargoType} onChange={(event) => updateForm(setInboundForm, 'cargoType', event.target.value)}>{CARGO_TYPE_OPTIONS.map((option) => <option key={option} value={option}>{option}</option>)}</select></label>
                     <label><span>Customer</span><input value={inboundForm.customer} onChange={(event) => updateForm(setInboundForm, 'customer', event.target.value)} /></label>
                     <label><span>Product</span><input value={inboundForm.product} onChange={(event) => updateForm(setInboundForm, 'product', event.target.value)} /></label>
                     <label><span>Vessel</span><input value={inboundForm.vessel} onChange={(event) => updateForm(setInboundForm, 'vessel', event.target.value)} /></label>
@@ -499,7 +513,7 @@ function App() {
                   </div>
                   <div className="formGrid">
                     <label><span>Customer</span><input value={outboundForm.customer} onChange={(event) => updateForm(setOutboundForm, 'customer', event.target.value)} /></label>
-                    <label><span>Cargo type</span><select value={outboundForm.cargoType} onChange={(event) => updateForm(setOutboundForm, 'cargoType', event.target.value)}><option>Lumber</option><option>Paper Roll</option></select></label>
+                    <label><span>Cargo type</span><select value={outboundForm.cargoType} onChange={(event) => updateForm(setOutboundForm, 'cargoType', event.target.value)}>{CARGO_TYPE_OPTIONS.map((option) => <option key={option} value={option}>{option}</option>)}</select></label>
                     <label><span>Release number</span><input value={outboundForm.releaseNo} onChange={(event) => updateForm(setOutboundForm, 'releaseNo', event.target.value)} /></label>
                     <label><span>Outbound BOL</span><input value={outboundForm.outboundBol} onChange={(event) => updateForm(setOutboundForm, 'outboundBol', event.target.value)} /></label>
                     <label><span>Inbound BOL</span><input value={outboundForm.inboundBol} onChange={(event) => updateForm(setOutboundForm, 'inboundBol', event.target.value)} /></label>
@@ -558,8 +572,7 @@ function App() {
                   <input placeholder="Release number" value={filters.releaseNo} onChange={(event) => setFilters((current) => ({ ...current, releaseNo: event.target.value }))} />
                   <select value={filters.cargoType} onChange={(event) => setFilters((current) => ({ ...current, cargoType: event.target.value }))}>
                     <option value="ALL">All cargo</option>
-                    <option value="Lumber">Lumber</option>
-                    <option value="Paper Roll">Paper Roll</option>
+                    {CARGO_TYPE_OPTIONS.map((option) => <option key={option} value={option}>{option}</option>)}
                   </select>
                   <select value={filters.status} onChange={(event) => setFilters((current) => ({ ...current, status: event.target.value }))}>
                     <option value="ALL">All status</option>

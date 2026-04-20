@@ -18,8 +18,18 @@ function ensureDataDir() {
   }
 }
 
+function normalizeCargoType(value = '') {
+  const raw = String(value || '').toLowerCase()
+  if (raw.includes('paper')) return 'Paper Roll'
+  if (raw.includes('lumber') || raw.includes('wood') || raw.includes('timber')) return 'Lumber'
+  return 'Others'
+}
+
 function barcodePrefix(cargoType = '') {
-  return String(cargoType).toLowerCase().includes('paper') ? 'PPR' : 'LMB'
+  const normalized = normalizeCargoType(cargoType)
+  if (normalized === 'Paper Roll') return 'PPR'
+  if (normalized === 'Lumber') return 'LMB'
+  return 'OTH'
 }
 
 function makeBarcodes(prefix, inboundBol, totalUnits) {
@@ -48,7 +58,8 @@ function createLotRecords(config) {
     createdAt,
   } = config
 
-  const barcodes = makeBarcodes(barcodePrefix(cargoType), inboundBol, totalUnits)
+  const normalizedCargoType = normalizeCargoType(cargoType)
+  const barcodes = makeBarcodes(barcodePrefix(normalizedCargoType), inboundBol, totalUnits)
 
   return barcodes.map((barcode, index) => {
     const position = index + 1
@@ -57,7 +68,7 @@ function createLotRecords(config) {
     return {
       id: `UNIT-${String(voyageNo || inboundBol)}-${String(position).padStart(3, '0')}`,
       barcode,
-      cargoType,
+      cargoType: normalizedCargoType,
       customer,
       product,
       vessel,
@@ -193,8 +204,8 @@ function computeSummary() {
   const shipped = store.units.filter((unit) => unit.status === 'SHIPPED').length
   const receivedToday = store.units.filter((unit) => sameDay(unit.receivedAt)).length
   const shippedToday = store.units.filter((unit) => sameDay(unit.shippedAt)).length
-  const paperRolls = store.units.filter((unit) => unit.cargoType === 'Paper Roll' && unit.status !== 'EXPECTED').length
-  const lumberUnits = store.units.filter((unit) => unit.cargoType === 'Lumber' && unit.status !== 'EXPECTED').length
+  const paperRolls = store.units.filter((unit) => normalizeCargoType(unit.cargoType) === 'Paper Roll' && unit.status !== 'EXPECTED').length
+  const lumberUnits = store.units.filter((unit) => normalizeCargoType(unit.cargoType) === 'Lumber' && unit.status !== 'EXPECTED').length
   const usedSqft = store.units.reduce((sum, unit) => {
     if (unit.status !== 'IN_YARD') return sum
     return sum + (unit.cargoType === 'Paper Roll' ? 80 : 150)
@@ -368,7 +379,7 @@ function renderBillOfLading(shipment) {
 
 function parseRow(row) {
   const customer = row.customer || row.Customer || 'Imported Customer'
-  const cargoType = row.cargoType || row['Cargo Type'] || row.Product || 'Lumber'
+  const cargoType = normalizeCargoType(row.cargoType || row['Cargo Type'] || row.Product || 'Others')
   const product = row.product || row.Product || row['Product Description'] || 'Imported Product'
   const vessel = row.vessel || row.Vessel || 'Imported Vessel'
   const voyageNo = String(row.voyageNo || row['Voyage No.'] || row.Voyage || `IMP-${store.nextCounter}`)

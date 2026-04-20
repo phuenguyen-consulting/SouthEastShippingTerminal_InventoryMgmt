@@ -6,16 +6,30 @@
 .topbar {
   display: flex;
   justify-content: space-between;
-  gap: 16px;
+  gap: 12px;
   align-items: flex-start;
-  padding: 22px 24px;
+  padding: 12px 18px;
   background: linear-gradient(135deg, #081320 0%, #0d1d32 48%, #143457 100%);
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 }
 
+.brandWrap {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.brandLogo {
+  width: 252px;
+  height: auto;
+  border-radius: 10px;
+  object-fit: contain;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+}
+
 .eyebrow {
-  margin: 0 0 6px;
-  font-size: 0.72rem;
+  margin: 0 0 4px;
+  font-size: 0.64rem;
   text-transform: uppercase;
   letter-spacing: 0.14em;
   color: #7dd3fc;
@@ -25,13 +39,31 @@
 .topbar h1,
 .heroPanel h2 {
   margin: 0;
+}
+
+.topbar h1 {
+  font-size: 1.4rem;
+  line-height: 1.1;
   color: #f8fbff;
 }
 
+.heroPanel h2 {
+  color: #10243a;
+  font-size: 1.35rem;
+}
+
 .subtitle {
-  max-width: 860px;
+  max-width: 760px;
   color: #c9d8e8;
-  margin-top: 8px;
+  margin-top: 4px;
+  font-size: 0.88rem;
+}
+
+.headerCredit {
+  margin: 6px 0 0;
+  color: #7dd3fc;
+  font-size: 0.8rem;
+  font-weight: 700;
 }
 
 .topbarBadges {
@@ -46,15 +78,15 @@
   background: rgba(13, 110, 154, 0.22);
   color: #e0f2fe;
   border-radius: 999px;
-  padding: 7px 10px;
-  font-size: 0.72rem;
+  padding: 5px 8px;
+  font-size: 0.66rem;
   white-space: nowrap;
 }
 
 .workspace {
   display: grid;
-  grid-template-columns: 260px minmax(0, 1fr);
-  min-height: calc(100vh - 132px);
+  grid-template-columns: 240px minmax(0, 1fr);
+  min-height: calc(100vh - 112px);
 }
 
 .sidebar {
@@ -525,6 +557,7 @@ th {
   font-weight: 700;
 }
 
+
 @media (max-width: 1200px) {
   .workspace {
     grid-template-columns: 1fr;
@@ -553,6 +586,15 @@ th {
   .topbar,
   .content {
     padding: 14px;
+  }
+
+  .brandWrap {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .brandLogo {
+    width: 180px;
   }
 
   .statsGrid,
