@@ -273,6 +273,16 @@ function App() {
     }
   }
 
+  async function storeWorkbookInGCS(file) {
+    const form = new FormData()
+    form.append('workbook', file)
+    try {
+      await fetch('/api/upload-workbook', { method: 'POST', body: form })
+    } catch {
+      // GCS storage is best-effort; local import already succeeded
+    }
+  }
+
   async function handleImportFile(event) {
     const file = event.target.files?.[0]
     if (!file) return
@@ -283,10 +293,13 @@ function App() {
       const firstSheet = workbook.Sheets[workbook.SheetNames[0]]
       const rows = XLSX.utils.sheet_to_json(firstSheet, { defval: '' })
 
-      const result = await apiRequest('/api/import', {
-        method: 'POST',
-        body: JSON.stringify({ rows, user: 'Excel Import Admin' }),
-      })
+      const [result] = await Promise.all([
+        apiRequest('/api/import', {
+          method: 'POST',
+          body: JSON.stringify({ rows, user: 'Excel Import Admin' }),
+        }),
+        storeWorkbookInGCS(file),
+      ])
 
       setMessage(`Excel import completed. ${result.importedCount} units added to the tracker.`)
       setError(false)
